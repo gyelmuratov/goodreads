@@ -1,23 +1,77 @@
-from rest_framework import status
+from rest_framework import filters, viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
-from api.serializers import BookReviewSerializer
-from books.models import BookReview
-from rest_framework import generics
-from rest_framework import viewsets
+from api.permissions import IsOwnerOrReadOnly
+from api.serializers import (
+    AuthorSerializer,
+    BookReviewSerializer,
+    BookSerializer,
+    FavoriteSerializer,
+    ReadingListSerializer,
+)
+from books.models import Author
+from books.services.book_service import get_books_search_queryset
+from books.services.favorite_service import get_user_favorites_queryset
+from books.services.reading_list_service import get_user_reading_list_queryset
+from books.services.review_service import get_reviews_queryset
 
 
+class DefaultPageNumberPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 50
 
+
+class BooksViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = BookSerializer
+    pagination_class = DefaultPageNumberPagination
+    filter_backends = [filters.SearchFilter]
+    # Search by title and author names.
+    search_fields = ["title", "book_authors__author__first_name", "book_authors__author__last_name"]
+
+    def get_queryset(self):
+        # Annotated and prefetch-optimized queryset from services layer.
+        return get_books_search_queryset()
+
+
+class AuthorsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AuthorSerializer
+    pagination_class = DefaultPageNumberPagination
+    queryset = Author.objects.all().order_by("last_name", "first_name", "id")
 
 
 class BookReviewsViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = BookReviewSerializer
-    queryset = BookReview.objects.select_related("book", "user").order_by('-id')
-    lookup_field = 'id'
+    pagination_class = DefaultPageNumberPagination
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    lookup_field = "id"
+
+    def get_queryset(self):
+        return get_reviews_queryset()
+
+
+class FavoriteViewSet(viewsets.ModelViewSet):
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    pagination_class = DefaultPageNumberPagination
+    lookup_field = "id"
+
+    def get_queryset(self):
+        # Users only see and mutate their own favorites.
+        return get_user_favorites_queryset(self.request.user)
+
+
+class ReadingListViewSet(viewsets.ModelViewSet):
+    serializer_class = ReadingListSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    pagination_class = DefaultPageNumberPagination
+    lookup_field = "id"
+
+    def get_queryset(self):
+        status = self.request.query_params.get("status")
+        # Users only see and mutate their own reading-list entries.
+        return get_user_reading_list_queryset(self.request.user, status=status)
 
 
 

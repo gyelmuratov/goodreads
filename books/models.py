@@ -9,7 +9,12 @@ class Book(models.Model):
     title = models.CharField(max_length=200, db_index=True)
     description = models.TextField()
     isbn = models.CharField(max_length=17, unique=True, db_index=True)
-    cover_picture = models.ImageField(default='default_cover.jpg')
+    cover_picture = models.URLField(null=True, blank=True)
+
+    def get_cover(self):
+        if self.cover_picture:
+            return self.cover_picture
+        return "https://picsum.photos/200/300"
 
     class Meta:
         ordering = ["id"]
@@ -22,6 +27,12 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ReadingStatus(models.TextChoices):
+    WANT_TO_READ = "want_to_read", "Want to read"
+    READING = "reading", "Reading"
+    FINISHED = "finished", "Finished"
 
 
 class Author(models.Model):
@@ -86,4 +97,47 @@ class BookReview(models.Model):
 
     def __str__(self):
         return f"{self.stars_given} stars of {self.book.title}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="favorited_by")
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "Favorite"
+        verbose_name_plural = "Favorites"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "book"], name="unique_user_book_favorite"),
+        ]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["book", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} favorited {self.book}"
+
+
+class ReadingList(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reading_list_entries")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reading_list_entries")
+    status = models.CharField(max_length=20, choices=ReadingStatus.choices, default=ReadingStatus.WANT_TO_READ, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        verbose_name = "Reading list entry"
+        verbose_name_plural = "Reading list entries"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "book"], name="unique_user_book_reading_list"),
+        ]
+        indexes = [
+            models.Index(fields=["user", "status"]),
+            models.Index(fields=["book", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.book} ({self.status})"
 
