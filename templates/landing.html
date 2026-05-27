@@ -1,7 +1,16 @@
 {% extends 'base.html' %}
 
+{% block title %}Welcome | Goodreads Clone{% endblock %}
+
 {% block content %}
-    <h1>Landing Page</h1>
+  <section class="hero-card text-center mx-auto">
+    <h1 class="display-6 fw-semibold mb-3">Track books. Share reviews. Discover more.</h1>
+    <p class="lead text-muted mb-4">A lightweight Goodreads-style app built with Django and Bootstrap.</p>
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+      <a href="{% url 'books:list' %}" class="btn btn-primary">Browse Books</a>
+      {% if not request.user.is_authenticated %}
+        <a href="{% url 'users:register' %}" class="btn btn-outline-primary">Create Account</a>
+      {% endif %}
+    </div>
+  </section>
 {% endblock %}
-
-

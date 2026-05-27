@@ -4,60 +4,21 @@
 {% block title %}Edit review{% endblock %}
 
 {% block content %}
-    <h3>Edit review</h3>
-    <div class="row mb-4">
-    <div class="col-6">
-
-    <form method="post" action="{% url 'books:edit-review' book.id review.id %}">
-            {% csrf_token %}
-
-            <!-- Stars given — CSS yulduzcha -->
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Stars given*</label>
-                <div class="star-rating">
-                    {% for i in "12345" %}
-                    <input type="radio" name="stars_given" id="star{{ i }}" value="{{ i }}"
-                        {% if review_form.stars_given.value|stringformat:"s" == i %}checked{% endif %}>
-                    <label for="star{{ i }}" title="{{ i }} yulduz">★</label>
-                    {% endfor %}
-                </div>
-                {% if review_form.stars_given.errors %}
-                    <div class="text-danger small">{{ review_form.stars_given.errors }}</div>
-                {% endif %}
-            </div>
-
-            <!-- Comment -->
-            <div class="mb-3">
-                {{ review_form.comment | as_crispy_field }}
-            </div>
-
-            <button class="btn btn-success">Save</button>
+  <section class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h1 class="h4 mb-3">Edit review</h1>
+      <div class="col-lg-7 p-0">
+        <form method="post" action="{% url 'books:review-update' book.id review.id %}" data-submit-loading>
+          {% csrf_token %}
+          {% include 'partials/star_input.html' with field_prefix='edit-review' review_form=review_form %}
+          {{ review_form.comment | as_crispy_field }}
+          <div class="d-flex gap-2 mt-2">
+            <button class="btn btn-primary" type="submit">Save changes</button>
+            <a href="{% url 'books:detail' book.id %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
         </form>
+      </div>
     </div>
-</div>
-
-<style>
-  .star-rating {
-    display: flex;
-    flex-direction: row-reverse;
-    gap: 4px;
-    width: fit-content;
-  }
-  .star-rating input[type="radio"] {
-    display: none;
-  }
-  .star-rating label {
-    font-size: 2rem;
-    color: #d1d5db;
-    cursor: pointer;
-    transition: color 0.15s, transform 0.15s;
-  }
-  .star-rating input[type="radio"]:checked ~ label,
-  .star-rating label:hover,
-  .star-rating label:hover ~ label {
-    color: #f59e0b;
-    transform: scale(1.15);
-  }
-</style>
+  </section>
 
 {% endblock %}

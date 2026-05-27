@@ -1,151 +1,71 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Book Detail Page{% endblock %}
+{% block title %}{{ book.title }} | Goodreads Clone{% endblock %}
 
 {% block content %}
-
-<style xmlns:review_form.stars_given.value>
-  /* ===== STAR DISPLAY (review ko'rsatish) ===== */
-  .star-display {
-    display: inline-flex;
-    gap: 2px;
-  }
-  .star-display .star {
-    font-size: 1.2rem;
-    color: #d1d5db; /* bo'sh yulduz — kulrang */
-    transition: color 0.2s;
-  }
-  .star-display .star.filled {
-    color: #f59e0b; /* to'liq yulduz — sariq */
-  }
-
-  /* ===== STAR INPUT (form uchun) ===== */
-  .star-rating {
-    display: flex;
-    flex-direction: row-reverse;
-    gap: 4px;
-    width: fit-content;
-  }
-  .star-rating input[type="radio"] {
-    display: none;
-  }
-  .star-rating label {
-    font-size: 2rem;
-    color: #d1d5db;
-    cursor: pointer;
-    transition: color 0.15s, transform 0.15s;
-  }
-  /* Tanlangan va undan oldingilarni sariq qil */
-  .star-rating input[type="radio"]:checked ~ label,
-  .star-rating label:hover,
-  .star-rating label:hover ~ label {
-    color: #f59e0b;
-    transform: scale(1.15);
-  }
-
-  /* ===== REVIEW CARD ===== */
-  .review-card {
-    background: #f9fafb;
-    border-left: 4px solid #f59e0b;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin-bottom: 16px;
-  }
-  .review-card .reviewer-name {
-    font-weight: 700;
-    font-size: 0.95rem;
-  }
-  .review-card .review-date {
-    font-size: 0.8rem;
-    color: #9ca3af;
-    margin-left: 8px;
-  }
-  .review-card .review-comment {
-    margin-top: 8px;
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: #374151;
-  }
-</style>
-
-<!-- Kitob ma'lumoti -->
-<div class="row mb-4">
+<section class="row g-4 mb-4">
     <div class="col-md-3">
-        <img class="img-fluid rounded shadow" alt="cover image" src="{{ book.cover_picture.url }}">
+        <img class="img-fluid rounded shadow book-cover-lg" alt="{{ book.title }} cover image" src="{{ book.cover_picture.url }}">
     </div>
     <div class="col-md-9">
-        <h3>{{ book.title }}</h3>
+        <h1 class="h3 mb-2">{{ book.title }}</h1>
 
-        <span>
+        <p class="text-muted mb-3">
             Authored by
-            {% for book_author in book.bookauthor_set.all %}
+            {% for book_author in book.book_authors.all %}
                 {{ book_author.author.first_name }} {{ book_author.author.last_name }}
+                {% if not forloop.last %}, {% endif %}
             {% endfor %}
-        </span>
+        </p>
 
-        <p>{{ book.description }}</p>
+        <p class="mb-0">{{ book.description }}</p>
     </div>
-</div>
+</section>
 
-<!-- Review form -->
-<div class="row mb-4">
-    <div class="col-6">
-        <form method="post" action="{% url 'books:reviews' book.id %}">
+<section class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-3">Write a review</h2>
+    <div class="col-lg-7 p-0">
+      <form method="post" action="{% url 'books:review-create' book.id %}" data-submit-loading>
             {% csrf_token %}
-
-            <!-- Stars given — CSS yulduzcha -->
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Stars given*</label>
-                <div class="star-rating">
-                    {% for i in "54321" %}
-                    <input type="radio" name="stars_given" id="star{{ i }}" value="{{ i }}"
-                        {% if review_form.stars_given.value|stringformat:"s" == i %}checked{% endif %}
-                    <label for="star{{ i }}" title="{{ i }} yulduz">★</label>
-                    {% endfor %}
-                </div>
-                {% if review_form.stars_given.errors %}
-                    <div class="text-danger small">{{ review_form.stars_given.errors }}</div>
-                {% endif %}
-            </div>
-
-            <!-- Comment -->
-            <div class="mb-3">
-                {{ review_form.comment | as_crispy_field }}
-            </div>
-
-            <button class="btn btn-success">Add review</button>
-        </form>
+            {% include 'partials/star_input.html' with field_prefix='create-review' review_form=review_form %}
+            {{ review_form.comment | as_crispy_field }}
+            <button class="btn btn-primary mt-2" type="submit">Add review</button>
+      </form>
     </div>
-</div>
+  </div>
+</section>
 
-<!-- Reviewlar ro'yxati -->
-{% if book.bookreview_set.exists %}
-    <h4>Reviews</h4>
-    <hr>
-    {% for review in book.bookreview_set.all %}
-        <div class="review-card">
-            <div class="d-flex align-items-center mb-1">
-                <img class="small-profile-pic me-2" src="{{ review.user.profile_picture.url }}" alt="avatar">
-                <span class="reviewer-name">{{ review.user.username }}</span>
-
-                <!-- Yulduzchalar ko'rsatish -->
-                <span class="star-display ms-2">
-                    {% for i in "12345" %}
-                        <span class="star {% if forloop.counter <= review.stars_given %}filled{% endif %}">★</span>
-                    {% endfor %}
-                </span>
-
-                <span class="review-date">{{ review.created_at|date:"d M Y" }}</span>
-                {% if review.user == request.user %}
-                    <a href="{% url 'books:edit-review' book.id review.id %}"><i class="bi bi-pen"></i></a>
-                    <a href="{% url 'books:confirm-delete-review' book.id review.id %}"><i class="bi bi-trash"></i></a>
-                {% endif %}
-
-            </div>
-            <p class="review-comment mb-0">{{ review.comment }}</p>
+<section>
+  <h2 class="h4 mb-3">Reviews</h2>
+  {% if book.reviews.exists %}
+    {% for review in book.reviews.all %}
+      <article class="review-card">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <img class="avatar avatar-sm" src="{{ review.user.profile_picture.url }}" alt="{{ review.user.username }} avatar">
+          <span class="reviewer-name">{{ review.user.username }}</span>
+          <span class="star-display" aria-label="{{ review.stars_given }} out of 5 stars">
+            {% for i in "12345" %}
+              <span class="star {% if forloop.counter <= review.stars_given %}filled{% endif %}" aria-hidden="true">★</span>
+            {% endfor %}
+          </span>
+          <span class="review-date">{{ review.created_at|date:"d M Y" }}</span>
+          {% if review.user == request.user %}
+            <a href="{% url 'books:review-update' book.id review.id %}" class="btn btn-sm btn-outline-secondary ms-auto" aria-label="Edit review">
+              <i class="bi bi-pen"></i>
+            </a>
+            <a href="{% url 'books:review-delete-confirm' book.id review.id %}" class="btn btn-sm btn-outline-danger" aria-label="Delete review">
+              <i class="bi bi-trash"></i>
+            </a>
+          {% endif %}
         </div>
+        <p class="review-comment mb-0">{{ review.comment }}</p>
+      </article>
     {% endfor %}
-{% endif %}
+  {% else %}
+    <p class="text-muted">No reviews yet. Be the first to leave one.</p>
+  {% endif %}
+</section>
 
 {% endblock %}

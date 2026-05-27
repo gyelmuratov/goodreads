@@ -1,67 +1,180 @@
-.profile-pic {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
+:root {
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --text-muted: #64748b;
+  --border-soft: #e2e8f0;
+  --accent-star: #f59e0b;
 }
 
-.small-profile-pic {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
+body {
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
-.cover-pic {
-    width: 100px;
-    height: 200px;
-
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  background: #0f172a;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
 }
 
-.posts-content{
-    margin-top:20px;
-}
-.ui-w-40 {
-    width: 40px !important;
-    height: auto;
-}
-.default-style .ui-bordered {
-    border: 1px solid rgba(24,28,33,0.06);
-}
-.ui-bg-cover {
-    background-color: transparent;
-    background-position: center center;
-    background-size: cover;
-}
-.ui-rect {
-    padding-top: 50% !important;
-}
-.ui-rect, .ui-rect-30, .ui-rect-60, .ui-rect-67, .ui-rect-75 {
-    position: relative !important;
-    display: block !important;
-    padding-top: 100% !important;
-    width: 100% !important;
-}
-.d-flex, .d-inline-flex, .media, .media>:not(.media-body), .jumbotron, .card {
-    -ms-flex-negative: 1;
-    flex-shrink: 1;
-}
-.bg-dark {
-    background-color: rgba(24,28,33,0.9) !important;
-}
-.card-footer, .card hr {
-    border-color: rgba(24,28,33,0.06);
-}
-.ui-rect-content {
-    position: absolute !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-}
-.default-style .ui-bordered {
-    border: 1px solid rgba(24,28,33,0.06);
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
 }
 
-.center {
-    margin: 0 auto;
-    display: block;
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.hero-card,
+.auth-card,
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  padding: 1.5rem;
+}
+
+.hero-card {
+  max-width: 46rem;
+}
+
+.auth-card {
+  max-width: 34rem;
+}
+
+.profile-card {
+  max-width: 30rem;
+}
+
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-sm {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.avatar-lg {
+  width: 8rem;
+  height: 8rem;
+}
+
+.book-cover {
+  width: 10.5rem;
+  height: 15rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.book-cover-lg {
+  width: 100%;
+  max-width: 14rem;
+  object-fit: cover;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 32rem;
+}
+
+.review-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-left: 4px solid var(--accent-star);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.reviewer-name {
+  font-weight: 600;
+}
+
+.review-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.review-comment {
+  color: #1e293b;
+}
+
+.star-display {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star-display .star {
+  font-size: 1.05rem;
+  color: #cbd5e1;
+}
+
+.star-display .star.filled {
+  color: var(--accent-star);
+}
+
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 0.25rem;
+  width: fit-content;
+}
+
+.star-rating input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.star-rating label {
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.star-rating input[type="radio"]:focus + label,
+.star-rating input[type="radio"]:focus-visible + label {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.star-rating input[type="radio"]:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: var(--accent-star);
+  transform: scale(1.08);
+}
+
+@media (max-width: 575.98px) {
+  .hero-card,
+  .auth-card,
+  .profile-card {
+    padding: 1rem;
+  }
+
+  .book-cover {
+    width: 100%;
+    max-width: 9rem;
+    height: 12.75rem;
+  }
+
+  .search-form {
+    grid-template-columns: 1fr;
+  }
 }

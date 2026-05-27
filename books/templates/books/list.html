@@ -1,61 +1,48 @@
 {% extends 'base.html' %}
 
-{% block title %}Books Page{% endblock %}
+{% block title %}Books | Goodreads Clone{% endblock %}
 
 {% block content %}
-    <h1>Books</h1>
-    <div class="row mb-3">
-        <div class="col-4">
-            <form class="d-flex" method="get">
-                <input class="form-control me-2" type="text" placeholder="Search" name="q" value="{{ search_query }}">
-
-                <button class="btn btn-success">Search</button>
-            </form>
-        </div>
-        
+  <section class="page-header d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+    <div>
+      <h1 class="h3 mb-1">Books</h1>
+      <p class="text-muted mb-0">Search and explore the collection.</p>
     </div>
-    {% if page_obj %}
-        {% for book in page_obj.object_list %}
-            <div class="row mb-4 align-items-start">
-                <div class="col-md-2">
-                    <img class="img-fluid" src="{{ book.cover_picture.url }}">
-                </div>
-                <div class="col-md-10">
+    <form class="search-form" method="get" role="search" aria-label="Search books">
+      <label for="book-search" class="visually-hidden">Search books</label>
+      <input id="book-search" class="form-control" type="search" placeholder="Search by title" name="q" value="{{ search_query }}">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+  </section>
 
-                    <a href="{% url 'books:detail' book.id %}">{{ book.title }}</a>
-                        <span class="text-muted">
-                            by
-                            {% for book_author in book.bookauthor_set.all %}
-                                <strong>{{ book_author.author.first_name }} {{ book_author.author.last_name }}</strong>{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </span>
-
-
-                    <p>{{ book.description }}</p>
-                </div>
+  {% if page_obj %}
+    <div class="d-grid gap-3">
+      {% for book in page_obj.object_list %}
+        <article class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="row g-3 align-items-start">
+              <div class="col-4 col-sm-3 col-lg-2">
+                <img class="book-cover w-100" src="{{ book.cover_picture.url }}" alt="{{ book.title }} cover">
+              </div>
+              <div class="col-8 col-sm-9 col-lg-10">
+                <h2 class="h5 mb-1">
+                  <a href="{% url 'books:detail' book.id %}" class="text-decoration-none">{{ book.title }}</a>
+                </h2>
+                <p class="text-muted mb-2">
+                  by
+                  {% for book_author in book.book_authors.all %}
+                    <strong>{{ book_author.author.first_name }} {{ book_author.author.last_name }}</strong>{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                </p>
+                <p class="mb-0">{{ book.description|truncatechars:280 }}</p>
+              </div>
             </div>
-        {% endfor %}
-
-<nav>
-    <ul class="pagination">
-        {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page=1">&laquo; first</a></li>
-            <li class="page-item"><a class="page-link"
-                href="?page={{ page_obj.previous_page_number }}">previous</a></li>
-        {% endif %}
-
-        <li class="page-item active">
-            <a href="#" class="page-link">{{ page_obj.number }}</a>
-        </li>
-
-        {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">last
-                &raquo;</a></li>
-        {% endif %}
-    </ul>
-</nav>
-    {% else %}
-        No books found.
-    {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% include 'partials/pagination.html' with page_obj=page_obj search_query=search_query %}
+  {% else %}
+    <p class="text-muted">No books found.</p>
+  {% endif %}
 {% endblock %}

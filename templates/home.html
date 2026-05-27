@@ -1,55 +1,39 @@
-{% extends 'base.html '%}
+{% extends 'base.html' %}
 
-{%  block title %}Home page{% endblock  %}
+{% block title %}Home | Goodreads Clone{% endblock %}
 
-{% block  content %}
- <h3>All reviews</h3>
+{% block content %}
+  <section class="page-header">
+    <h1 class="h3 mb-1">Recent Reviews</h1>
+    <p class="text-muted mb-0">Latest activity from your readers.</p>
+  </section>
 
-    {% for review in page_obj %}
-    <div class="container posts-content">
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="card mb-4">
-                  <div class="card-body">
-                    <div class="media mb-3">
-                        <img src="{{ review.user.profile_picture.url }}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
-                      <div class="media-body ml-3">
-                        <b>{{ review.user.username }}</b> rated this book {{ review.stars_given }} stars
-                        <div class="text-muted small">{{ review.created_at|date:"M d, Y"}}</div>
-                      </div>
-                    </div>
-
-                    <p>
-                        {{ review.comment | truncatechars:300}}
-                    </p>
-                        <img class="cover-pic center" src="{{ review.book.cover_picture.url }}" style="width:200px; height:280px; object-fit:cover; border-radius:8px;">
-                  </div>
-
+  {% if page_obj %}
+    <div class="row g-3">
+      {% for review in page_obj %}
+        <div class="col-12 col-lg-6">
+          <article class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+              <header class="d-flex align-items-center gap-2 mb-3">
+                <img class="avatar avatar-sm" src="{{ review.user.profile_picture.url }}" alt="{{ review.user.username }} profile image">
+                <div>
+                  <p class="mb-0">
+                    <strong>{{ review.user.username }}</strong>
+                    rated this book
+                    <strong>{{ review.stars_given }}/5</strong>
+                  </p>
+                  <p class="text-muted small mb-0">{{ review.created_at|date:"M d, Y" }}</p>
                 </div>
+              </header>
+              <p class="mb-3">{{ review.comment|truncatechars:220 }}</p>
+              <img class="book-cover mx-auto d-block" src="{{ review.book.cover_picture.url }}" alt="{{ review.book.title }} cover">
             </div>
-
+          </article>
         </div>
+      {% endfor %}
     </div>
-
-    {% endfor %}
-
-    <nav>
-        <ul class="pagination">
-            {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page=1">&laquo; first</a></li>
-                <li class="page-item"><a class="page-link"
-                    href="?page={{ page_obj.previous_page_number }}">previous</a></li>
-            {% endif %}
-
-            <li class="page-item active">
-                <a href="#" class="page-link">{{ page_obj.number }}</a>
-            </li>
-
-            {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">next</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">last
-                    &raquo;</a></li>
-            {% endif %}
-        </ul>
-</nav>
+    {% include 'partials/pagination.html' with page_obj=page_obj %}
+  {% else %}
+    <p class="text-muted">No reviews yet.</p>
+  {% endif %}
 {% endblock %}

@@ -45,7 +45,7 @@ class LoginView(View):
 
             return redirect('books:list')
         else:
-            return render(request, 'users/login.html', {'form': login_form})
+            return render(request, 'users/login.html', {'login_form': login_form})
 
 
 class ProfileView(LoginRequiredMixin, View):

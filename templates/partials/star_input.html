@@ -1,0 +1,19 @@
+<fieldset class="mb-3">
+  <legend class="form-label fw-semibold fs-6">Stars given *</legend>
+  <div class="star-rating" role="radiogroup" aria-label="Select a rating from 1 to 5 stars">
+    {% for i in "54321" %}
+      <input
+        type="radio"
+        name="stars_given"
+        id="{{ field_prefix|default:'rating' }}-star{{ i }}"
+        value="{{ i }}"
+        {% if review_form.stars_given.value|stringformat:'s' == i %}checked{% endif %}
+      >
+      <label for="{{ field_prefix|default:'rating' }}-star{{ i }}" title="{{ i }} stars">★</label>
+    {% endfor %}
+  </div>
+  {% if review_form.stars_given.errors %}
+    <div class="text-danger small mt-1">{{ review_form.stars_given.errors }}</div>
+  {% endif %}
+</fieldset>
+
