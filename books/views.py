@@ -1,13 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
-from django.db.models import Prefetch
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
 
 from books.forms import BookReviewForm
-from books.models import Book, BookReview
+from books.services.book_service import (
+    get_book_detail_or_404,
+    list_books_page,
+    parse_books_list_params,
+)
 from books.services.review_service import (
     add_review,
     delete_review,
@@ -19,17 +21,12 @@ from books.services.review_service import (
 
 class BooksView(View):
     def get(self, request):
-        books = Book.objects.prefetch_related("book_authors__author").order_by('id')
-        search_query = request.GET.get('q', '')
-
-        if search_query:
-            books = books.filter(title__icontains=search_query)
-
-        page_size = request.GET.get('page_size',2)
-        paginator = Paginator(books, page_size)
-
-        page_number = request.GET.get('page',1)
-        page_obj = paginator.get_page(page_number)
+        search_query, page_number, page_size = parse_books_list_params(request)
+        page_obj = list_books_page(
+            search_query=search_query,
+            page=page_number,
+            page_size=page_size,
+        )
         return render(
             request,
             'books/list.html',
@@ -38,19 +35,14 @@ class BooksView(View):
 
 class BookDetailView(View):
     def get(self, request, id):
-        review_prefetch = Prefetch(
-            "reviews",
-            queryset=BookReview.objects.select_related("user").order_by("-created_at", "-id"),
-        )
-        book = get_object_or_404(
-            Book.objects.prefetch_related("book_authors__author", review_prefetch),
-            id=id,
-        )
+        book = get_book_detail_or_404(id)
         review_form = BookReviewForm()
+        # Use prefetched list once; template reads these without extra relation checks.
+        reviews = list(book.reviews.all())
         return render(
             request,
             'books/detail.html',
-            {'book': book, 'review_form': review_form})
+            {'book': book, 'review_form': review_form, 'reviews': reviews, 'has_reviews': bool(reviews)})
 
 
 class AddReviewView(LoginRequiredMixin, View):
@@ -69,7 +61,20 @@ class AddReviewView(LoginRequiredMixin, View):
         return render(
             request,
             'books/detail.html',
-            {'book': book, 'review_form': review_form})
+            self._build_detail_context(id=id, review_form=review_form),
+        )
+
+    @staticmethod
+    def _build_detail_context(*, id: int, review_form: BookReviewForm):
+        # Reuse optimized detail fetch so invalid form re-render avoids N+1.
+        detail_book = get_book_detail_or_404(id)
+        reviews = list(detail_book.reviews.all())
+        return {
+            "book": detail_book,
+            "review_form": review_form,
+            "reviews": reviews,
+            "has_reviews": bool(reviews),
+        }
 
 
 class EditReviewView(LoginRequiredMixin, View):
