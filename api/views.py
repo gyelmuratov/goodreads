@@ -16,7 +16,7 @@ from rest_framework import viewsets
 class BookReviewsViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = BookReviewSerializer
-    queryset = BookReview.objects.all().order_by('-id')
+    queryset = BookReview.objects.select_related("book", "user").order_by('-id')
     lookup_field = 'id'
 
 

@@ -65,12 +65,12 @@ class BookReviewTestCase(TestCase):
         user.save()
         self.client.login(username='gulam', password='Asd123/*-')
 
-        self.client.post(reverse('books:reviews',kwargs={'id':book.id}), data={
+        self.client.post(reverse('books:review-create', kwargs={'id': book.id}), data={
             'stars_given': 3,
             'comment': 'Nice book'
         }
         )
-        book_reviews = book.bookreview_set.all()
+        book_reviews = book.reviews.all()
 
         self.assertEqual(book_reviews.count(), 1)
         self.assertEqual(book_reviews[0].stars_given, 3)

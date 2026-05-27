@@ -9,3 +9,11 @@ class CustomUser(AbstractUser):
         upload_to='profile_pictures/',
         default='default_profile_picture.jpg'
     )
+
+    class Meta:
+        ordering = ["username"]
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
+    def __str__(self):
+        return self.username
