@@ -92,3 +92,27 @@ class BookReview(models.Model):
     def __str__(self):
         return f"{self.stars_given} stars of {self.book.title}"
 
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="favorites")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("user", "book")
+
+
+class ReadingList(models.Model):
+    STATUS_CHOICES = (
+        ("reading", "Reading"),
+        ("finished", "Finished"),
+        ("planned", "Planned"),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reading_list")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reading_list")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="reading")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "book")
+
